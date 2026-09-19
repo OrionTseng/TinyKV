@@ -28,13 +28,13 @@ sudo apt update
 sudo apt install -y build-essential cmake
 ```
 
-可选后端的额外依赖：
+可选后端的额外依赖（当前简化版 CMake **不会**构建它们）：
 
-| 后端 | CMake 值 | 额外依赖 |
-| --- | --- | --- |
-| Reactor（默认） | `REACTOR` | 无。 |
-| Proactor | `PROACTOR` | `liburing-dev`，且内核需要支持 `io_uring`。 |
-| NtyCo | `NTYCO` | `nty_coroutine.h` 与 `libntyco`；可放在 `NtyCo/core/` 与 `NtyCo/`。 |
+| 后端 | 额外依赖 |
+| --- | --- |
+| Reactor（默认） | 无。 |
+| Proactor | `liburing-dev`，且内核需要支持 `io_uring`。 |
+| NtyCo | `nty_coroutine.h` 与 `libntyco`；可放在 `NtyCo/core/` 与 `NtyCo/`。 |
 
 ## 使用 CMake 构建
 
@@ -50,24 +50,9 @@ cmake --build build --parallel
 | 可执行文件 | 用途 |
 | --- | --- |
 | `build/kvstore` | KV TCP 服务端。 |
-| `build/kvstore_test_client` | 简单测试客户端；可用 `-DKVS_BUILD_TEST_CLIENT=OFF` 关闭构建。 |
+| `build/kvstore_test_client` | 简单测试客户端。 |
 
-选择 Proactor：
-
-```bash
-sudo apt install -y liburing-dev
-cmake -S . -B build-proactor -DKVS_NETWORK_BACKEND=PROACTOR
-cmake --build build-proactor --parallel
-```
-
-选择 NtyCo：
-
-```bash
-cmake -S . -B build-ntyco -DKVS_NETWORK_BACKEND=NTYCO
-cmake --build build-ntyco --parallel
-```
-
-`KVS_NETWORK_BACKEND` 只接受 `REACTOR`、`PROACTOR`、`NTYCO`。CMake 会只编译所选后端，并在缺少对应依赖时给出配置错误；不会要求安装其他两个后端的库。
+这份 CMake 刻意只构建无需第三方库的 Reactor 后端，配置清晰且适合本项目的默认学习路径。`src/proactor.c` 与 `src/ntyco.c` 保留为独立实验源码；如要构建它们，需要把 `src/reactor.c` 替换为对应文件，并按注释补充 `liburing` 或 NtyCo 的头文件路径与链接库。
 
 ## 启动与验证
 
